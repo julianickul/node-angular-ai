@@ -1,0 +1,33 @@
+{
+  "name": "@demo/shared-types",
+  "version": "1.0.0",
+  "description": "Shared types, DTOs and interfaces for fullstack demo",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "typescript",
+    "shared-types",
+    "dto",
+    "nestjs",
+    "angular"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}
