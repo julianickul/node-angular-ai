@@ -4,5 +4,12 @@
     { "path": "./shared-types" },
     { "path": "./backend" },
     { "path": "./frontend" }
-  ]
+  ],
+  "compilerOptions": {
+    "paths": {
+      // "@nnaai/shared-types": ["../shared-types/dist"],  // или путь к папке
+      // "@nnaai/shared-types/*": ["../shared-types/dist/*"],
+      "@shared-types/*": ["../shared-types/src/*"]
+    }
+  }
 }

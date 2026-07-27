@@ -30,7 +30,7 @@
     "bcryptjs": "^2.4.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
-    "@demo/shared-types": "file:../shared-types"
+    "@nnaai/shared-types": "file:../shared-types"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

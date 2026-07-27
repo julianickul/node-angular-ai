@@ -1,6 +1,6 @@
 // // DTO
-// export * from './dto/auth.dto';
-// export * from './dto/user.dto';
+export * from './dto/auth.dto';
+export * from './dto/user.dto';
 // export * from './dto/list.dto';
 // export * from './dto/list-item.dto';
 // export * from './dto/common.dto';
@@ -28,3 +28,12 @@
 // // Удобные экспорты для частых случаев
 // export type { UserRole as Role };
 // export type { ListStatus, ListItemStatus };
+
+
+// Responses
+export * from './responses/auth.response';
+
+// Re-export для удобства
+export type { LoginDto, RegisterDto } from './dto/auth.dto';
+export type { UserDto } from './dto/user.dto';
+export type { AuthResponse, RefreshTokenResponse, AuthErrorResponse } from './responses/auth.response';

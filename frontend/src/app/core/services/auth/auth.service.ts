@@ -1,10 +1,11 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { LoginDto, RegisterDto, AuthResponse } from '@demo/shared-types';
+import { LoginDto, RegisterDto, AuthResponse, UserDto } from '@nnaai/shared-types';
 import { TokenService } from './token.service';
-import { catchError, tap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { tap } from 'rxjs/operators';
+// import { catchError, tap } from 'rxjs/operators';
+// import { of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
