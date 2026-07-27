@@ -1,11 +1,11 @@
 {
-  "name": "@demo/shared-types",
+  "name": "@nnaai/shared-types",
   "version": "1.0.0",
   "description": "Shared types, DTOs and interfaces for fullstack demo",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p ./tsconfig.build.json",
     "build:watch": "tsc --watch",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
@@ -24,10 +24,10 @@
   ],
   "author": "Your Name",
   "license": "MIT",
-  "peerDependencies": {
-    "typescript": ">=5.0.0"
-  },
   "devDependencies": {
-    "typescript": "^5.5.0"
+    "typescript": "~5.5.0"
+  },
+  "peerDependencies": {
+    "@types/node": "^20.0.0"
   }
 }

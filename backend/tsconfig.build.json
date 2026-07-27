@@ -1,25 +1,23 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../dist/frontend",
+    "outDir": "../dist/backend",
     "rootDir": ".",
-    "types": ["node"]
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true
   },
   "files": [
     "src/main.ts"
   ],
   "include": [
-    "src/**/*.d.ts",
     "src/**/*.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts",
     "src/**/*.test.ts",
-    "src/test.ts",
-    "src/polyfills.ts",
-    "e2e/**/*",
-    "**/jest.config.ts",
-    "**/*.stories.ts"
+    "test/**/*",
+    "**/__tests__/**/*"
   ],
   "references": [
     { "path": "../shared-types" }
