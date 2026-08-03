@@ -11,23 +11,25 @@
   ],
   "scripts": {
     "dev": "npm run dev:backend & npm run dev:frontend",
-    "dev:backend": "npm run start:dev --workspace=backend",
+    "dev:backend": "npm run start --workspace=backend",
     "dev:frontend": "npm run start --workspace=frontend",
-    "build": "npm run build --workspaces",
-    "build:backend": "npm run build --workspace=backend",
+    "build": "nest build --workspaces",
+    "build:backend": "nest build --workspace=backend",
     "build:frontend": "npm run build --workspace=frontend",
     "build:shared": "npm run build --workspace=shared-types",
-    "migration:generate": "npm run migration:generate --workspace=backend",
-    "migration:run": "npm run migration:run --workspace=backend",
-    "migration:revert": "npm run migration:revert --workspace=backend",
+    "migration:show": "npm run build:shared && cd backend && node -r ts-node/register/transpile-only -r tsconfig-paths/register ../node_modules/typeorm/cli.js migration:show -d ./src/typeorm-cli.datasource.ts",
+    "migration:generate": "npm run build:shared && cd backend && node -r ts-node/register/transpile-only -r tsconfig-paths/register ../node_modules/typeorm/cli.js migration:generate ./src/infrastructure/database/migrations/$npm_config_name -d ./src/typeorm-cli.datasource.ts",
+    "migration:run": "npm run build:shared && cd backend && node -r ts-node/register/transpile-only -r tsconfig-paths/register ../node_modules/typeorm/cli.js migration:run -d ./src/typeorm-cli.datasource.ts",
+    "migration:revert": "npm run build:shared && cd backend && node -r ts-node/register/transpile-only -r tsconfig-paths/register ../node_modules/typeorm/cli.js migration:revert -d ./src/typeorm-cli.datasource.ts",
     "type-check": "npm run type-check --workspaces",
     "lint": "npm run lint --workspaces",
-    "test": "npm run test --workspaces",
+    "test": "jest --workspaces",
     "clean": "rm -rf node_modules backend/node_modules frontend/node_modules shared-types/node_modules"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.0.0"
   },
   "engines": {
     "node": ">=20.0.0",

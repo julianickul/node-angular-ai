@@ -1,20 +1,34 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { join } from 'path';
+import { ConfigService } from '@nestjs/config';
 
-export const typeOrmConfig: TypeOrmModuleOptions = {
+export const getTypeOrmConfig = (
+  configService: ConfigService,
+): TypeOrmModuleOptions => ({
   type: 'mysql',
-  host: process.env.DB_HOST || 'localhost',
-  // port: parseInt(process.env.DB_PORT) || 3306,
-  port: parseInt(process.env.DB_PORT || '3306', 10),
-  username: process.env.DB_USERNAME || 'root',
-  password: process.env.DB_PASSWORD || 'password',
-  database: process.env.DB_DATABASE || 'myapp',
-  entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
-  migrations: [join(__dirname, '..', 'migrations', '*.{ts,js}')],
+
+  host: configService.get<string>('database.host'),
+  port: configService.get<number>('database.port'),
+  username: configService.get<string>('database.username'),
+  password: configService.get<string>('database.password'),
+  database: configService.get<string>('database.database'),
+
+  // ВАЖНО:
+  // TypeORM будет автоматически собирать entity из всех forFeature(...)
+  autoLoadEntities: true,
+
+  migrations: [
+    __dirname + '/../infrastructure/database/migrations/*{.ts,.js}',
+  ],
   migrationsTableName: 'migrations',
-  synchronize: false, // ВАЖНО: false для продакшна
-  logging: process.env.NODE_ENV !== 'production',
-  ssl: process.env.DB_SSL === 'true' ? {
-    rejectUnauthorized: false
-  } : false
-};
+
+  synchronize: configService.get<boolean>('database.synchronize', false),
+  logging: configService.get<boolean>('database.logging', false),
+
+  extra: {
+    connectionLimit: 10,
+    connectTimeout: 10000,
+  },
+
+  retryAttempts: 3,
+  retryDelay: 1000,
+});

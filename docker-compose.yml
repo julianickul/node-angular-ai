@@ -22,7 +22,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
       MYSQL_DATABASE: ${DB_NAME:-nnaai_db}
       MYSQL_USER: ${DB_USER:-user}
-      MYSQL_PASSWORD: ${DB_PASS:-12345}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-12345}
       MYSQL_TCP_PORT: ${DB_PORT:-3306}
     ports:
       - "${DB_PORT:-3306}:3306"
@@ -53,7 +53,7 @@ services:
       DB_HOST: db
       DB_PORT: ${DB_PORT:-3306}
       DB_USER: ${DB_USER:-user}
-      DB_PASS: ${DB_PASS:-12345}
+      DB_PASSWORD: ${DB_PASSWORD:-12345}
       DB_NAME: ${DB_NAME:-nnaai_db}
       JWT_SECRET: ${JWT_SECRET:-supersecretkey123}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
@@ -131,7 +131,7 @@ services:
       PMA_ARBITRARY: 1
       UPLOAD_LIMIT: 100M
       PMA_USER: ${DB_USER:-user}
-      PMA_PASSWORD: ${DB_PASS:-12345}
+      PMA_PASSWORD: ${DB_PASSWORD:-12345}
     ports:
       - "${PMA_PORT:-8080}:80"
     depends_on:

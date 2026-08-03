@@ -2,8 +2,20 @@
   "name": "@nnaai/shared-types",
   "version": "1.0.0",
   "description": "Shared types, DTOs and interfaces for fullstack demo",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./*": {
+      "require": "./dist/*.js",
+      "import": "./dist/*.js",
+      "types": "./dist/*.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc -p ./tsconfig.build.json",
     "build:watch": "tsc --watch",

@@ -9,7 +9,7 @@
     "paths": {
       // "@nnaai/shared-types": ["../shared-types/dist"],  // или путь к папке
       // "@nnaai/shared-types/*": ["../shared-types/dist/*"],
-      "@shared-types/*": ["../shared-types/src/*"]
+      // "@shared-types/*": ["../shared-types/src/*"]
     }
   }
 }

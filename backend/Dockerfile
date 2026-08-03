@@ -54,12 +54,13 @@ COPY backend/ ./backend/
 
 # Устанавливаем nodemon глобально для hot-reload
 RUN npm install -g nodemon
+RUN npm install -g @nestjs/cli
 
 WORKDIR /app/backend
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start:dev"]
+CMD ["nest", "npm", "run", "start:dev"]
 
 
 # ============================================

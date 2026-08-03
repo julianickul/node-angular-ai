@@ -10,11 +10,13 @@
     "ignoreDeprecations": "5.0",
     "paths": {
       "@/*": ["src/*"],
-      "@modules/*": ["src/modules/*"],
-      "@common/*": ["src/common/*"],
+      "@module/*": ["src/api/modules/*"],
       "@config/*": ["src/config/*"],
-      "@database/*": ["src/database/*"],
-      "@shared-types/*": ["../shared-types/src/*"]
+      "@database/*": ["src/infrastructure/database/*"],
+      "@core/*": ["src/core/*"],
+      "@shared/*": ["src/shared/*"],
+      "@nnaai/shared-types": ["../shared-types/dist"],
+      "@nnaai/shared-types/*": ["../shared-types/dist/*"]
     },
     "types": ["node", "jest"],
     "strict": true,
@@ -54,5 +56,9 @@
   ],
   "references": [
     { "path": "../shared-types" }
-  ]
+  ],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "transpileOnly": true
+  }
 }

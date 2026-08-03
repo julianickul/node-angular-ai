@@ -142,7 +142,7 @@ health: ## Проверить здоровье контейнеров
 backup-db: ## Создать бэкап БД (сохраняется в ./backups/)
 	@mkdir -p backups
 	@echo "$(YELLOW)💾 Создание бэкапа БД...$(NC)"
-	$(DOCKER_COMPOSE) exec db mysqldump -u $(shell grep DB_USER $(ENV_FILE) | cut -d '=' -f2) -p$(shell grep DB_PASS $(ENV_FILE) | cut -d '=' -f2) $(shell grep DB_NAME $(ENV_FILE) | cut -d '=' -f2) > backups/backup_$$(date +%Y%m%d_%H%M%S).sql
+	$(DOCKER_COMPOSE) exec db mysqldump -u $(shell grep DB_USER $(ENV_FILE) | cut -d '=' -f2) -p$(shell grep DB_PASSWORD $(ENV_FILE) | cut -d '=' -f2) $(shell grep DB_NAME $(ENV_FILE) | cut -d '=' -f2) > backups/backup_$$(date +%Y%m%d_%H%M%S).sql
 	@echo "$(GREEN)✅ Бэкап создан в папке backups/$(NC)"
 
 .PHONY: restore-db
@@ -153,7 +153,7 @@ restore-db: ## Восстановить БД из бэкапа (использу
 		exit 1; \
 	fi
 	@echo "$(YELLOW)🔄 Восстановление БД из $(file)...$(NC)"
-	cat $(file) | $(DOCKER_COMPOSE) exec -T db mysql -u $(shell grep DB_USER $(ENV_FILE) | cut -d '=' -f2) -p$(shell grep DB_PASS $(ENV_FILE) | cut -d '=' -f2) $(shell grep DB_NAME $(ENV_FILE) | cut -d '=' -f2)
+	cat $(file) | $(DOCKER_COMPOSE) exec -T db mysql -u $(shell grep DB_USER $(ENV_FILE) | cut -d '=' -f2) -p$(shell grep DB_PASSWORD $(ENV_FILE) | cut -d '=' -f2) $(shell grep DB_NAME $(ENV_FILE) | cut -d '=' -f2)
 	@echo "$(GREEN)✅ БД восстановлена$(NC)"
 
 .PHONY: install

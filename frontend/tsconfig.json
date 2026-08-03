@@ -33,8 +33,8 @@
       "@features/*": ["src/app/features/*"],
       "@environments/*": ["src/environments/*"],
       "@assets/*": ["src/assets/*"],
-      "@styles/*": ["src/styles/*"],
-      "@shared-types/*": ["../shared-types/src/*"]
+      "@styles/*": ["src/styles/*"]
+      // "@shared-types/*": ["../shared-types/src/*"]
     },
     "types": ["node", "jest"]
   },
