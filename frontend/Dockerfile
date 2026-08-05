@@ -62,7 +62,7 @@ COPY --from=shared-builder /app/shared-types/tsconfig*.json ./shared-types/
 COPY frontend/ ./frontend/
 
 # Создаем proxy для Docker
-RUN echo '{"api": {"target": "http://backend:3000","secure": false,"changeOrigin": true,"logLevel": "debug"}}' > ./frontend/proxy.conf.json
+RUN echo '{"/api": {"target": "http://backend:3000","secure": false,"changeOrigin": true,"logLevel": "debug"}}' > ./frontend/proxy.conf.json
 
 WORKDIR /app/frontend
 # Примечание: Убедитесь, что этот скрипт есть в frontend/package.json

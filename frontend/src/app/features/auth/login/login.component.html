@@ -1,8 +1,8 @@
 <div class="login-container">
   <mat-card class="login-card">
     <mat-card-header>
-      <mat-card-title>Welcome Back</mat-card-title>
-      <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
+      <mat-card-title>Добро пожаловать</mat-card-title>
+      <mat-card-subtitle>Войдите в ваш аккаунт</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
@@ -11,10 +11,10 @@
           <mat-label>Email</mat-label>
           <input matInput formControlName="email" type="email" placeholder="your@email.com">
           <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
-            Email is required
+            Email является обязательным
           </mat-error>
           <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
-            Please enter a valid email
+            Пожалуйста, введите корректный email
           </mat-error>
         </mat-form-field>
 
@@ -25,10 +25,10 @@
             <!-- <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon> -->
           </button>
           <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-            Password is required
+            Пароль является обязательным
           </mat-error>
           <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
-            Password must be at least 6 characters
+            Пароль должен быть не менее 6 символов
           </mat-error>
         </mat-form-field>
 
@@ -36,15 +36,15 @@
           {{ error() }}
         </div>
 
-        <button mat-raised-button color="primary" class="full-width" type="submit" [disabled]="!isFormValid || isLoading()">
+        <button mat-raised-button color="primary" class="full-width" type="submit" [disabled]="loginForm.invalid || isLoading()">
           <mat-spinner diameter="20" *ngIf="isLoading()"></mat-spinner>
-          <span *ngIf="!isLoading()">Sign In</span>
+          <span *ngIf="!isLoading()">Войти</span>
         </button>
       </form>
     </mat-card-content>
 
     <mat-card-actions>
-      <p>Don't have an account? <a routerLink="/auth/register">Sign up</a></p>
+      <p>Нет аккаунта? <a routerLink="/register">Зарегистрироваться</a></p>
     </mat-card-actions>
   </mat-card>
 </div>

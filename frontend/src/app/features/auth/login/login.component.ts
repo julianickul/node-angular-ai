@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '@core/services/auth/auth.service';
 import { LoginDto } from '@nnaai/shared-types';
 import { MatCardModule } from '@angular/material/card';
@@ -21,43 +21,38 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
   ],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
-  private fb = inject(FormBuilder);
-  private authService = inject(AuthService);
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
-  // Локальные сигналы
   showPassword = signal(false);
 
-  // Реактивные формы (можно заменить на сигнальные формы в Angular 19)
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]]
+    password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  // Вычисляемый сигнал для валидации формы
-  isFormValid = this.loginForm.valid;
+  readonly isLoading = this.authService.isLoading;
+  readonly error = this.authService.error;
 
-  get isLoading() {
-    return this.authService.isLoading;
-  }
-
-  get error() {
-    return this.authService.error;
-  }
-
-  onSubmit() {
-    if (this.loginForm.valid) {
-      const credentials = this.loginForm.value as LoginDto;
-      this.authService.login(credentials).subscribe();
+  onSubmit(): void {
+    if (this.loginForm.invalid) {
+      return;
     }
+
+    const credentials = this.loginForm.value as LoginDto;
+    this.authService.login(credentials).subscribe({
+      next: () => this.router.navigate(['/tickets']),
+    });
   }
 
-  togglePasswordVisibility() {
-    this.showPassword.update(v => !v);
+  togglePasswordVisibility(): void {
+    this.showPassword.update((v) => !v);
   }
 }
