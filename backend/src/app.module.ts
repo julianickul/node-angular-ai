@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { databaseConfig } from './config/database.config';
 import { getTypeOrmConfig } from './config/typeorm.config';
+import { GlobalJwtGuard } from './core/guards/global-jwt.guard';
+import { RequestContextInterceptor } from './core/interceptors/request-context.interceptor';
+import { SanitizeResponseInterceptor } from './core/interceptors/sanitize-response.interceptor';
 
 // Импорт фич-модулей
-import { AuthModule } from '@module/auth/auth.module';
-import { UsersModule } from '@module/users/users.module';
+import { AuthModule } from '@/modules/auth/auth.module';
+import { UsersModule } from '@/modules/users/users.module';
+import { TicketModule } from '@/modules/ticket/ticket.module';
 
 @Module({
   imports: [
@@ -28,6 +33,21 @@ import { UsersModule } from '@module/users/users.module';
     // 3. Бизнес-модули
     AuthModule,
     UsersModule,
+    TicketModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: GlobalJwtGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestContextInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: SanitizeResponseInterceptor,
+    },
   ],
 })
 export class AppModule {}
