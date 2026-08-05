@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DataSource } from 'typeorm';
 
@@ -9,7 +10,20 @@ function isError(error: unknown): error is Error {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Проверка подключения к БД при старте
+  app.setGlobalPrefix('api');
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+    }),
+  );
+
+  app.enableCors({
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:4200',
+    credentials: true,
+  });
+
   const dataSource = app.get(DataSource);
 
   try {
@@ -27,6 +41,6 @@ async function bootstrap() {
 
   const port = process.env.BACKEND_PORT || 3000;
   await app.listen(port);
-  console.log(`🚀 Application running on port 3000`);
+  console.log(`🚀 Application running on port ${port}`);
 }
 bootstrap();

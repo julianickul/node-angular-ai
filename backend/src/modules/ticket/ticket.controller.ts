@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   Query,
-  ValidationPipe,
   ParseIntPipe,
   HttpCode,
   HttpStatus,
@@ -31,8 +30,7 @@ export class TicketController {
   @ApiOperation({ summary: 'Создать тикет' })
   @ApiResponse({ status: 201, description: 'Тикет создан' })
   create(
-    @Body(new ValidationPipe({ transform: true, whitelist: true }))
-    createTicketDto: CreateTicketDto,
+    @Body() createTicketDto: CreateTicketDto,
     @CurrentUser('id') authorId: number,
   ): Promise<Ticket> {
     return this.ticketService.create(createTicketDto, authorId);
@@ -41,10 +39,7 @@ export class TicketController {
   @Get()
   @ApiOperation({ summary: 'Получить список тикетов с фильтрацией и пагинацией' })
   @ApiResponse({ status: 200, description: 'Список тикетов' })
-  findAll(
-    @Query(new ValidationPipe({ transform: true, whitelist: true }))
-    query: QueryTicketsDto,
-  ): Promise<PaginatedTicketsResponse> {
+  findAll(@Query() query: QueryTicketsDto): Promise<PaginatedTicketsResponse> {
     return this.ticketService.findAll(query);
   }
 
@@ -62,8 +57,7 @@ export class TicketController {
   @ApiResponse({ status: 404, description: 'Тикет или исполнитель не найден' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body(new ValidationPipe({ transform: true, whitelist: true }))
-    updateTicketDto: UpdateTicketDto,
+    @Body() updateTicketDto: UpdateTicketDto,
   ): Promise<Ticket> {
     return this.ticketService.update(id, updateTicketDto);
   }

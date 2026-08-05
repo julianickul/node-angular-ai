@@ -1,18 +1,12 @@
-// import { UserDto } from '../dto/user.dto';
+import { IUserResponse } from '../../interfaces/user.interface';
 
-// export interface AuthResponse {
-//   accessToken: string;
-//   refreshToken: string;
-//   user: UserDto;
-// }
+export interface IAuthResponse {
+  user: IUserResponse;
+  accessToken: string;
+  refreshToken: string;
+}
 
-// export interface RefreshTokenResponse {
-//   accessToken: string;
-//   refreshToken: string;
-// }
-
-// export interface AuthErrorResponse {
-//   statusCode: number;
-//   message: string | string[];
-//   error: string;
-// }
+export interface IRefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}
