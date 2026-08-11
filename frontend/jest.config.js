@@ -1,13 +1,12 @@
+/** @type {import('jest').Config} */
 module.exports = {
   preset: 'jest-preset-angular',
   setupFilesAfterEnv: ['<rootDir>/src/setup-jest.ts'],
   testEnvironment: 'jsdom',
-  
-  // Пути для модулей
+
   modulePaths: ['<rootDir>'],
   moduleDirectories: ['node_modules', '<rootDir>'],
-  
-  // Алиасы путей (должны совпадать с tsconfig.json)
+
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/src/app/$1',
     '^@core/(.*)$': '<rootDir>/src/app/core/$1',
@@ -16,76 +15,49 @@ module.exports = {
     '^@environments/(.*)$': '<rootDir>/src/environments/$1',
     '^@assets/(.*)$': '<rootDir>/src/assets/$1',
     '^@styles/(.*)$': '<rootDir>/src/styles/$1',
-    
-    // Обработка статических файлов
+    '^@nnaai/shared-types$': '<rootDir>/../shared-types/src/index.ts',
+    '^@nnaai/shared-types/(.*)$': '<rootDir>/../shared-types/src/$1',
     '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/src/__mocks__/file-mock.js',
-    '\\.(css|scss|less|sass)$': 'identity-obj-proxy'
+    '\\.(css|scss|less|sass)$': 'identity-obj-proxy',
   },
 
-  // Какие файлы собирать для тестов
-  testMatch: [
-    '<rootDir>/src/**/*.spec.ts',
-    '<rootDir>/src/**/*.test.ts'
-  ],
-  
-  // Какие файлы игнорировать
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/dist/',
-    '/e2e/'
-  ],
+  testMatch: ['<rootDir>/src/**/*.spec.ts', '<rootDir>/src/**/*.test.ts'],
 
-  // Покрытие кода
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/e2e/'],
+
   collectCoverageFrom: [
     'src/**/*.ts',
-    '!src/**/*.module.ts',
     '!src/**/*.routes.ts',
     '!src/main.ts',
-    '!src/test.ts',
-    '!src/polyfills.ts',
+    '!src/setup-jest.ts',
     '!src/**/*.d.ts',
     '!src/environments/**',
     '!src/**/index.ts',
-    '!src/**/models/**'
   ],
-  
+
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['html', 'lcov', 'text-summary'],
-  
-  // Глобальные настройки
-  globals: {
-    'ts-jest': {
-      tsconfig: '<rootDir>/tsconfig.spec.json',
-      stringifyContentPathRegex: '\\.html$',
-      isolatedModules: true
-    }
-  },
 
-  // Трансформация файлов
   transform: {
-    '^.+\\.(ts|js|mjs|html)$': [
+    '^.+\\.(ts|js|mjs|html|svg)$': [
       'jest-preset-angular',
       {
         tsconfig: '<rootDir>/tsconfig.spec.json',
-        stringifyContentPathRegex: '\\.html$'
-      }
-    ]
+        stringifyContentPathRegex: '\\.(html|svg)$',
+      },
+    ],
   },
-  
-  transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$))'
-  ],
 
-  // Дополнительные настройки
+  transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
+
   verbose: true,
   bail: false,
   maxWorkers: '50%',
   testTimeout: 10000,
-  
-  // Снапшоты
+
   snapshotSerializers: [
     'jest-preset-angular/build/serializers/no-ng-attributes',
     'jest-preset-angular/build/serializers/ng-snapshot',
-    'jest-preset-angular/build/serializers/html-comment'
-  ]
+    'jest-preset-angular/build/serializers/html-comment',
+  ],
 };

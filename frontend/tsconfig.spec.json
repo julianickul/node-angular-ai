@@ -1,25 +1,16 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../dist/out-tsc/spec",
-    "module": "CommonJs",
+    "outDir": "./out-tsc/spec",
+    "module": "CommonJS",
     "types": ["jest", "node"],
     "esModuleInterop": true,
-    "allowJs": true,
-    "rootDir": "."
+    "allowJs": true
   },
-  "files": [
-    "src/test.ts"
-  ],
   "include": [
     "src/**/*.spec.ts",
     "src/**/*.test.ts",
-    "src/**/*.d.ts"
-  ],
-  "exclude": [
-    "src/**/*.ts"
-  ],
-  "references": [
-    { "path": "../shared-types" }
+    "src/**/*.d.ts",
+    "src/setup-jest.ts"
   ]
 }
