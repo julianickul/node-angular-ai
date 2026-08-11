@@ -52,7 +52,7 @@ export class AuthService {
       passwordHash,
       firstName: dto.firstName.trim(),
       lastName: dto.lastName.trim(),
-      role: dto.role || UserRole.USER,
+      role: UserRole.USER,
     });
 
     const savedUser = await this.userRepo.save(user);

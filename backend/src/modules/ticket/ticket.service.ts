@@ -1,6 +1,8 @@
 import {
   Injectable,
   NotFoundException,
+  ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,8 +11,10 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { QueryTicketsDto } from './dto/query-tickets.dto';
 import { Ticket } from './entities/ticket.entity';
 import { User } from '@/modules/users/entities/user.entity';
-import { TicketPriority } from '@nnaai/shared-types';
+import { TicketPriority, TicketStatus } from '@nnaai/shared-types';
 import { PaginatedTicketsResponse } from './interfaces/paginated-tickets.interface';
+import { AuthenticatedUser } from '@/modules/auth/interfaces/auth-request.interface';
+import { isStaffRole } from '@/core/utils/roles.util';
 
 @Injectable()
 export class TicketService {
@@ -21,7 +25,10 @@ export class TicketService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async findAll(query: QueryTicketsDto): Promise<PaginatedTicketsResponse> {
+  async findAll(
+    query: QueryTicketsDto,
+    user: AuthenticatedUser,
+  ): Promise<PaginatedTicketsResponse> {
     const {
       page,
       limit,
@@ -37,6 +44,13 @@ export class TicketService {
       .createQueryBuilder('ticket')
       .leftJoinAndSelect('ticket.author', 'author')
       .leftJoinAndSelect('ticket.assignee', 'assignee');
+
+    if (!isStaffRole(user.role)) {
+      queryBuilder.andWhere(
+        '(ticket.authorId = :userId OR ticket.assigneeId = :userId)',
+        { userId: user.id },
+      );
+    }
 
     if (status !== undefined) {
       queryBuilder.andWhere('ticket.status = :status', { status });
@@ -71,7 +85,7 @@ export class TicketService {
     };
   }
 
-  async findOne(id: number): Promise<Ticket> {
+  async findOne(id: number, user: AuthenticatedUser): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({
       where: { id },
       relations: ['author', 'assignee'],
@@ -81,89 +95,189 @@ export class TicketService {
       throw new NotFoundException(`Тикет с ID ${id} не найден`);
     }
 
+    this.assertCanView(ticket, user);
+
     return ticket;
   }
 
-  async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
+  async update(
+    id: number,
+    updateTicketDto: UpdateTicketDto,
+    user: AuthenticatedUser,
+  ): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({ where: { id } });
 
     if (!ticket) {
       throw new NotFoundException(`Тикет с ID ${id} не найден`);
     }
 
-    if (
-      updateTicketDto.assigneeId !== undefined &&
-      updateTicketDto.assigneeId !== null
-    ) {
-      const assignee = await this.userRepository.findOne({
-        where: { id: updateTicketDto.assigneeId },
-      });
+    if (isStaffRole(user.role)) {
+      await this.applyStaffUpdate(ticket, updateTicketDto);
+    } else {
+      this.applyUserUpdate(ticket, updateTicketDto, user);
+    }
 
-      if (!assignee) {
-        throw new NotFoundException(
-          `Исполнитель с ID ${updateTicketDto.assigneeId} не найден`,
-        );
+    await this.ticketRepository.save(ticket);
+    return this.findOne(id, user);
+  }
+
+  async remove(id: number, user: AuthenticatedUser): Promise<void> {
+    const ticket = await this.ticketRepository.findOne({ where: { id } });
+
+    if (!ticket) {
+      throw new NotFoundException(`Тикет с ID ${id} не найден`);
+    }
+
+    if (!isStaffRole(user.role)) {
+      if (ticket.authorId !== user.id) {
+        throw new ForbiddenException('Можно удалять только свои заявки');
+      }
+      if (ticket.status !== TicketStatus.OPEN) {
+        throw new ForbiddenException('Можно удалять только заявки со статусом open');
       }
     }
 
-    let hasChanges = false;
-
-    if (updateTicketDto.status !== undefined) {
-      ticket.status = updateTicketDto.status;
-      hasChanges = true;
-    }
-
-    if (updateTicketDto.priority !== undefined) {
-      ticket.priority = updateTicketDto.priority;
-      hasChanges = true;
-    }
-
-    if (updateTicketDto.assigneeId !== undefined) {
-      ticket.assigneeId = updateTicketDto.assigneeId;
-      hasChanges = true;
-    }
-
-    if (hasChanges) {
-      await this.ticketRepository.save(ticket);
-    }
-
-    return this.findOne(id);
-  }
-
-  async remove(id: number): Promise<void> {
-    const result = await this.ticketRepository.delete(id);
-
-    if (result.affected === 0) {
-      throw new NotFoundException(`Тикет с ID ${id} не найден`);
-    }
+    await this.ticketRepository.delete(id);
   }
 
   async create(
     createTicketDto: CreateTicketDto,
-    authorId: number,
+    user: AuthenticatedUser,
   ): Promise<Ticket> {
-    if (createTicketDto.assigneeId !== undefined) {
-      const assignee = await this.userRepository.findOne({
-        where: { id: createTicketDto.assigneeId },
-      });
+    const isStaff = isStaffRole(user.role);
 
-      if (!assignee) {
-        throw new NotFoundException(
-          `Исполнитель с ID ${createTicketDto.assigneeId} не найден`,
-        );
+    let priority = TicketPriority.MEDIUM;
+    let assigneeId: number | null = null;
+
+    if (isStaff) {
+      if (createTicketDto.priority !== undefined) {
+        priority = createTicketDto.priority;
       }
+
+      if (createTicketDto.assigneeId !== undefined) {
+        await this.assertAssigneeExists(createTicketDto.assigneeId);
+        assigneeId = createTicketDto.assigneeId;
+      }
+    } else if (
+      createTicketDto.priority !== undefined ||
+      createTicketDto.assigneeId !== undefined
+    ) {
+      throw new ForbiddenException(
+        'Пользователь не может задавать приоритет или исполнителя при создании',
+      );
     }
 
     const ticket = this.ticketRepository.create({
       title: createTicketDto.title.trim(),
       description: createTicketDto.description.trim(),
-      priority: createTicketDto.priority ?? TicketPriority.MEDIUM,
-      authorId,
-      assigneeId: createTicketDto.assigneeId ?? null,
+      priority,
+      status: TicketStatus.OPEN,
+      authorId: user.id,
+      assigneeId,
     });
 
     const savedTicket = await this.ticketRepository.save(ticket);
+    return this.findOne(savedTicket.id, user);
+  }
 
-    return this.findOne(savedTicket.id);
+  private assertCanView(ticket: Ticket, user: AuthenticatedUser): void {
+    if (isStaffRole(user.role)) {
+      return;
+    }
+
+    if (ticket.authorId !== user.id && ticket.assigneeId !== user.id) {
+      throw new ForbiddenException('Нет доступа к этой заявке');
+    }
+  }
+
+  private applyUserUpdate(
+    ticket: Ticket,
+    dto: UpdateTicketDto,
+    user: AuthenticatedUser,
+  ): void {
+    if (ticket.authorId !== user.id) {
+      throw new ForbiddenException('Редактировать можно только свои заявки');
+    }
+
+    if (ticket.status !== TicketStatus.OPEN) {
+      throw new ForbiddenException(
+        'Редактировать можно только заявки со статусом open',
+      );
+    }
+
+    if (
+      dto.status !== undefined ||
+      dto.priority !== undefined ||
+      dto.assigneeId !== undefined
+    ) {
+      throw new ForbiddenException(
+        'Пользователь не может менять статус, приоритет или исполнителя',
+      );
+    }
+
+    if (dto.title === undefined && dto.description === undefined) {
+      throw new BadRequestException('Нет полей для обновления');
+    }
+
+    if (dto.title !== undefined) {
+      ticket.title = dto.title.trim();
+    }
+
+    if (dto.description !== undefined) {
+      ticket.description = dto.description.trim();
+    }
+  }
+
+  private async applyStaffUpdate(
+    ticket: Ticket,
+    dto: UpdateTicketDto,
+  ): Promise<void> {
+    if (
+      dto.assigneeId !== undefined &&
+      dto.assigneeId !== null
+    ) {
+      await this.assertAssigneeExists(dto.assigneeId);
+    }
+
+    let hasChanges = false;
+
+    if (dto.title !== undefined) {
+      ticket.title = dto.title.trim();
+      hasChanges = true;
+    }
+
+    if (dto.description !== undefined) {
+      ticket.description = dto.description.trim();
+      hasChanges = true;
+    }
+
+    if (dto.status !== undefined) {
+      ticket.status = dto.status;
+      hasChanges = true;
+    }
+
+    if (dto.priority !== undefined) {
+      ticket.priority = dto.priority;
+      hasChanges = true;
+    }
+
+    if (dto.assigneeId !== undefined) {
+      ticket.assigneeId = dto.assigneeId;
+      hasChanges = true;
+    }
+
+    if (!hasChanges) {
+      throw new BadRequestException('Нет полей для обновления');
+    }
+  }
+
+  private async assertAssigneeExists(assigneeId: number): Promise<void> {
+    const assignee = await this.userRepository.findOne({
+      where: { id: assigneeId },
+    });
+
+    if (!assignee) {
+      throw new NotFoundException(`Исполнитель с ID ${assigneeId} не найден`);
+    }
   }
 }

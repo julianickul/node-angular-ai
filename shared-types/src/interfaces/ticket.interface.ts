@@ -23,6 +23,8 @@ export interface ITicketCreate {
 }
 
 export interface ITicketUpdate {
+  title?: string;
+  description?: string;
   status?: TicketStatus;
   priority?: TicketPriority;
   assigneeId?: number | null;

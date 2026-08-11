@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { databaseConfig } from './config/database.config';
 import { getTypeOrmConfig } from './config/typeorm.config';
 import { GlobalJwtGuard } from './core/guards/global-jwt.guard';
+import { RolesGuard } from './core/guards/roles.guard';
 import { RequestContextInterceptor } from './core/interceptors/request-context.interceptor';
 import { SanitizeResponseInterceptor } from './core/interceptors/sanitize-response.interceptor';
 
@@ -39,6 +40,10 @@ import { TicketModule } from '@/modules/ticket/ticket.module';
     {
       provide: APP_GUARD,
       useClass: GlobalJwtGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
     {
       provide: APP_INTERCEPTOR,

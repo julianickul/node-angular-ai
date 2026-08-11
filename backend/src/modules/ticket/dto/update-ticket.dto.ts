@@ -1,4 +1,13 @@
-import { IsEnum, IsInt, IsOptional, Min, ValidateIf } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsInt,
+  Min,
+  MaxLength,
+  MinLength,
+  ValidateIf,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { TicketPriority, TicketStatus } from '@nnaai/shared-types';
 
@@ -8,7 +17,25 @@ import { TicketPriority, TicketStatus } from '@nnaai/shared-types';
  */
 export class UpdateTicketDto {
   @ApiPropertyOptional({
-    description: 'Статус тикета',
+    description: 'Заголовок тикета (автор может менять только у open-заявки)',
+    example: 'Не работает авторизация',
+  })
+  @IsOptional()
+  @IsString({ message: 'Заголовок должен быть строкой' })
+  @MinLength(3, { message: 'Заголовок должен содержать минимум 3 символа' })
+  @MaxLength(255, { message: 'Заголовок не может быть длиннее 255 символов' })
+  title?: string;
+
+  @ApiPropertyOptional({
+    description: 'Описание проблемы (автор может менять только у open-заявки)',
+  })
+  @IsOptional()
+  @IsString({ message: 'Описание должно быть строкой' })
+  @MinLength(10, { message: 'Описание должно содержать минимум 10 символов' })
+  description?: string;
+
+  @ApiPropertyOptional({
+    description: 'Статус тикета (только moderator/admin)',
     enum: TicketStatus,
   })
   @IsOptional()
@@ -18,7 +45,7 @@ export class UpdateTicketDto {
   status?: TicketStatus;
 
   @ApiPropertyOptional({
-    description: 'Приоритет тикета',
+    description: 'Приоритет тикета (только moderator/admin)',
     enum: TicketPriority,
   })
   @IsOptional()
@@ -28,7 +55,7 @@ export class UpdateTicketDto {
   priority?: TicketPriority;
 
   @ApiPropertyOptional({
-    description: 'ID исполнителя. Передайте null, чтобы снять исполнителя',
+    description: 'ID исполнителя. Передайте null, чтобы снять исполнителя (только moderator/admin)',
     example: 2,
     nullable: true,
   })

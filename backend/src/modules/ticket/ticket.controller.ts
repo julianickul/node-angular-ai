@@ -19,6 +19,7 @@ import { QueryTicketsDto } from './dto/query-tickets.dto';
 import { PaginatedTicketsResponse } from './interfaces/paginated-tickets.interface';
 import { Ticket } from './entities/ticket.entity';
 import { CurrentUser } from '@/core/decorators/current-user.decorator';
+import { AuthenticatedUser } from '@/modules/auth/interfaces/auth-request.interface';
 
 @ApiTags('tickets')
 @Controller('tickets')
@@ -31,35 +32,42 @@ export class TicketController {
   @ApiResponse({ status: 201, description: 'Тикет создан' })
   create(
     @Body() createTicketDto: CreateTicketDto,
-    @CurrentUser('id') authorId: number,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<Ticket> {
-    return this.ticketService.create(createTicketDto, authorId);
+    return this.ticketService.create(createTicketDto, user);
   }
 
   @Get()
   @ApiOperation({ summary: 'Получить список тикетов с фильтрацией и пагинацией' })
   @ApiResponse({ status: 200, description: 'Список тикетов' })
-  findAll(@Query() query: QueryTicketsDto): Promise<PaginatedTicketsResponse> {
-    return this.ticketService.findAll(query);
+  findAll(
+    @Query() query: QueryTicketsDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<PaginatedTicketsResponse> {
+    return this.ticketService.findAll(query, user);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Получить тикет по ID' })
   @ApiResponse({ status: 200, description: 'Детальная карточка тикета' })
   @ApiResponse({ status: 404, description: 'Тикет не найден' })
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<Ticket> {
-    return this.ticketService.findOne(id);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<Ticket> {
+    return this.ticketService.findOne(id, user);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Обновить тикет (статус, приоритет, исполнитель)' })
+  @ApiOperation({ summary: 'Обновить тикет' })
   @ApiResponse({ status: 200, description: 'Обновлённый тикет' })
   @ApiResponse({ status: 404, description: 'Тикет или исполнитель не найден' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTicketDto: UpdateTicketDto,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<Ticket> {
-    return this.ticketService.update(id, updateTicketDto);
+    return this.ticketService.update(id, updateTicketDto, user);
   }
 
   @Delete(':id')
@@ -67,7 +75,10 @@ export class TicketController {
   @ApiOperation({ summary: 'Удалить тикет' })
   @ApiResponse({ status: 204, description: 'Тикет удалён' })
   @ApiResponse({ status: 404, description: 'Тикет не найден' })
-  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.ticketService.remove(id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<void> {
+    return this.ticketService.remove(id, user);
   }
 }

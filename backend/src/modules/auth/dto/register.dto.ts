@@ -2,13 +2,10 @@ import {
   IsEmail,
   IsString,
   IsNotEmpty,
-  IsOptional,
-  IsEnum,
   MinLength,
   MaxLength,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '@nnaai/shared-types';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
   @ApiProperty({ example: 'user@example.com' })
@@ -37,9 +34,4 @@ export class RegisterDto {
   @MinLength(2)
   @MaxLength(100)
   lastName!: string;
-
-  @ApiPropertyOptional({ enum: UserRole, default: UserRole.USER })
-  @IsOptional()
-  @IsEnum(UserRole)
-  role?: UserRole;
 }
