@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, adminGuard } from '@core/guards/auth.guard';
+import { authGuard, guestGuard, adminGuard, staffGuard } from '@core/guards/auth.guard';
 import { LayoutComponent } from '@shared/components/layout/layout.component';
 
 export const routes: Routes = [
@@ -42,6 +42,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/tickets/ticket-detail/ticket-detail.component').then(
             (m) => m.TicketDetailComponent,
+          ),
+      },
+      {
+        path: 'stats',
+        canActivate: [staffGuard],
+        loadComponent: () =>
+          import('./features/tickets/ticket-stats/ticket-stats.component').then(
+            (m) => m.TicketStatsComponent,
           ),
       },
       {

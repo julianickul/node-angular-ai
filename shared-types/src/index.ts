@@ -1,5 +1,6 @@
 export * from './interfaces/user.interface';
 export * from './interfaces/ticket.interface';
+export * from './interfaces/ticket-history.interface';
 export * from './interfaces/pagination.interface';
 
 export * from './enums/user-role.enum';

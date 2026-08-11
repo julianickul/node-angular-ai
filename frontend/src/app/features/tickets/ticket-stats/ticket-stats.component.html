@@ -1,0 +1,124 @@
+<div class="stats-header">
+  <h1>Статистика изменений</h1>
+</div>
+
+@if (loading()) {
+  <div class="loading"><mat-spinner /></div>
+} @else if (error()) {
+  <p class="error-message">{{ error() }}</p>
+} @else {
+  @if (stats(); as s) {
+    <div class="summary-grid">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Всего изменений</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="metric">{{ s.totalChanges }}</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>За 7 дней</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="metric">{{ s.changesLast7Days }}</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>За 30 дней</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="metric">{{ s.changesLast30Days }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="section-card">
+      <mat-card-header>
+        <mat-card-title>Изменения по дням (30 дней)</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="day-chart" role="img" aria-label="График изменений по дням">
+          @for (day of s.byDay; track day.date) {
+            <div class="day-bar-wrap" [title]="day.date + ': ' + day.count">
+              <div class="day-bar" [style.height]="barHeight(day.count)"></div>
+              <span class="day-label">{{ day.date | date: 'dd.MM' }}</span>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="bottom-grid">
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-card-title>Топ авторов изменений</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (s.byUser.length === 0) {
+            <p class="empty">Пока нет данных</p>
+          } @else {
+            <ul class="user-stats">
+              @for (item of s.byUser; track item.userId) {
+                <li>
+                  <span>{{ item.userName }}</span>
+                  <strong>{{ item.count }}</strong>
+                </li>
+              }
+            </ul>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="section-card recent-card">
+        <mat-card-header>
+          <mat-card-title>Последние изменения</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (s.recent.length === 0) {
+            <p class="empty">Пока нет данных</p>
+          } @else {
+            <table mat-table [dataSource]="s.recent" class="recent-table">
+              <ng-container matColumnDef="createdAt">
+                <th mat-header-cell *matHeaderCellDef>Дата</th>
+                <td mat-cell *matCellDef="let row">
+                  {{ row.createdAt | date: 'dd.MM.yyyy HH:mm' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="ticketId">
+                <th mat-header-cell *matHeaderCellDef>Тикет</th>
+                <td mat-cell *matCellDef="let row">
+                  <a [routerLink]="['/tickets', row.ticketId]">#{{ row.ticketId }}</a>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="user">
+                <th mat-header-cell *matHeaderCellDef>Кто</th>
+                <td mat-cell *matCellDef="let row">
+                  {{
+                    row.changedBy
+                      ? userName(row.changedBy.firstName, row.changedBy.lastName)
+                      : 'Система'
+                  }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="message">
+                <th mat-header-cell *matHeaderCellDef>Событие</th>
+                <td mat-cell *matCellDef="let row">{{ row.message }}</td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="recentColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: recentColumns"></tr>
+            </table>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+}

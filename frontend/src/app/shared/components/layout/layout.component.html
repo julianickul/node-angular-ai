@@ -9,6 +9,16 @@
     >
       Заявки
     </a>
+    @if (authService.isStaff()) {
+      <a
+        mat-button
+        routerLink="/stats"
+        routerLinkActive="active-link"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        Статистика
+      </a>
+    }
     @if (authService.isAdmin()) {
       <a
         mat-button
