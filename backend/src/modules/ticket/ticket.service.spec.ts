@@ -19,7 +19,10 @@ describe('TicketService', () => {
   const staffUser: AuthenticatedUser = {
     id: 1,
     email: 'admin@example.com',
+    firstName: 'Ada',
+    lastName: 'Lovelace',
     role: UserRole.ADMIN,
+    isActive: true,
   };
 
   beforeEach(async () => {
