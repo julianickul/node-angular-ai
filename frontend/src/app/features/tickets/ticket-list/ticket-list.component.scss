@@ -25,12 +25,24 @@
   }
 }
 
-.loading {
+.loading,
+.loading-more {
   display: flex;
   justify-content: center;
   padding: 3rem;
 }
 
-mat-paginator {
-  background: white;
+.loading-more {
+  padding: 1.5rem;
+}
+
+.load-more-sentinel {
+  height: 1px;
+}
+
+.end-of-list {
+  text-align: center;
+  color: rgba(0, 0, 0, 0.54);
+  padding: 1rem 0 2rem;
+  margin: 0;
 }

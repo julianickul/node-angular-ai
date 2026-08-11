@@ -1,10 +1,19 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import {
+  afterRenderEffect,
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  inject,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -22,6 +31,8 @@ import {
 import { PriorityLabelPipe, StatusLabelPipe } from '@shared/pipes/ticket-label.pipe';
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from '@shared/constants/ticket.constants';
 
+const PAGE_SIZE = 10;
+
 @Component({
   selector: 'app-ticket-list',
   standalone: true,
@@ -30,7 +41,6 @@ import { PRIORITY_OPTIONS, STATUS_OPTIONS } from '@shared/constants/ticket.const
     RouterLink,
     ReactiveFormsModule,
     MatTableModule,
-    MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -48,6 +58,10 @@ export class TicketListComponent implements OnInit {
   private readonly usersService = inject(UsersService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+
+  private readonly loadMoreSentinel = viewChild<ElementRef<HTMLElement>>('loadMoreSentinel');
+  private observer: IntersectionObserver | null = null;
 
   readonly displayedColumns = [
     'id',
@@ -64,9 +78,11 @@ export class TicketListComponent implements OnInit {
   tickets = signal<ITicket[]>([]);
   total = signal(0);
   page = signal(1);
-  limit = signal(10);
   loading = signal(false);
+  loadingMore = signal(false);
   users = signal<IUserResponse[]>([]);
+
+  readonly hasMore = computed(() => this.tickets().length < this.total());
 
   filtersForm = this.fb.group({
     search: [''],
@@ -76,6 +92,28 @@ export class TicketListComponent implements OnInit {
     sortBy: ['createdAt' as ITicketQuery['sortBy']],
     sortOrder: ['DESC' as ITicketQuery['sortOrder']],
   });
+
+  constructor() {
+    this.destroyRef.onDestroy(() => this.observer?.disconnect());
+
+    afterRenderEffect(() => {
+      const el = this.loadMoreSentinel()?.nativeElement;
+      this.observer?.disconnect();
+      this.observer = null;
+
+      if (!el) return;
+
+      this.observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) {
+            this.loadMore();
+          }
+        },
+        { root: null, rootMargin: '200px', threshold: 0 },
+      );
+      this.observer.observe(el);
+    });
+  }
 
   ngOnInit(): void {
     this.usersService.getUsers().subscribe((users) => this.users.set(users));
@@ -92,9 +130,7 @@ export class TicketListComponent implements OnInit {
         },
         { emitEvent: false },
       );
-      this.page.set(Number(params['page'] ?? 1));
-      this.limit.set(Number(params['limit'] ?? 10));
-      this.loadTickets();
+      this.loadTickets(true);
     });
 
     this.filtersForm.valueChanges
@@ -102,14 +138,7 @@ export class TicketListComponent implements OnInit {
       .subscribe(() => this.applyFilters());
   }
 
-  onPageChange(event: PageEvent): void {
-    this.page.set(event.pageIndex + 1);
-    this.limit.set(event.pageSize);
-    this.updateQueryParams();
-  }
-
   applyFilters(): void {
-    this.page.set(1);
     this.updateQueryParams();
   }
 
@@ -122,13 +151,19 @@ export class TicketListComponent implements OnInit {
     return `${user.firstName} ${user.lastName}`;
   }
 
+  private loadMore(): void {
+    if (this.loading() || this.loadingMore() || !this.hasMore()) return;
+    this.page.update((p) => p + 1);
+    this.loadTickets(false);
+  }
+
   private updateQueryParams(): void {
     const form = this.filtersForm.value;
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
-        page: this.page(),
-        limit: this.limit(),
+        page: null,
+        limit: null,
         search: form.search || null,
         status: form.status || null,
         priority: form.priority || null,
@@ -140,13 +175,18 @@ export class TicketListComponent implements OnInit {
     });
   }
 
-  private loadTickets(): void {
-    this.loading.set(true);
-    const form = this.filtersForm.value;
+  private loadTickets(reset: boolean): void {
+    if (reset) {
+      this.page.set(1);
+      this.loading.set(true);
+    } else {
+      this.loadingMore.set(true);
+    }
 
+    const form = this.filtersForm.value;
     const query: ITicketQuery = {
       page: this.page(),
-      limit: this.limit(),
+      limit: PAGE_SIZE,
       sortBy: form.sortBy ?? 'createdAt',
       sortOrder: form.sortOrder ?? 'DESC',
       search: form.search || undefined,
@@ -157,11 +197,22 @@ export class TicketListComponent implements OnInit {
 
     this.ticketService.getTickets(query).subscribe({
       next: (response) => {
-        this.tickets.set(response.data);
+        if (reset) {
+          this.tickets.set(response.data);
+        } else {
+          this.tickets.update((prev) => [...prev, ...response.data]);
+        }
         this.total.set(response.total);
         this.loading.set(false);
+        this.loadingMore.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        if (!reset) {
+          this.page.update((p) => Math.max(1, p - 1));
+        }
+        this.loading.set(false);
+        this.loadingMore.set(false);
+      },
     });
   }
 }
