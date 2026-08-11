@@ -6,7 +6,10 @@ import {
   IAuthResponse,
   ILoginRequest,
   IRegisterRequest,
+  ITicket,
   IUserResponse,
+  TicketStatus,
+  UserRole,
 } from '@nnaai/shared-types';
 import { TokenService } from './token.service';
 import { environment } from '@environments/environment';
@@ -25,6 +28,11 @@ export class AuthService {
   readonly isLoading = this.isLoadingSignal.asReadonly();
   readonly error = this.errorSignal.asReadonly();
   readonly isAuthenticated = computed(() => this.tokenService.hasAccessToken());
+  readonly isStaff = computed(() => {
+    const role = this.currentUserSignal()?.role;
+    return role === UserRole.ADMIN || role === UserRole.MODERATOR;
+  });
+  readonly isAdmin = computed(() => this.currentUserSignal()?.role === UserRole.ADMIN);
 
   constructor() {
     this.restoreSession();
@@ -79,6 +87,37 @@ export class AuthService {
 
   getUserRole() {
     return this.currentUserSignal()?.role ?? null;
+  }
+
+  /** moderator/admin: status, priority, assignee */
+  canManageTicketAssignment(): boolean {
+    return this.isStaff();
+  }
+
+  /** user: own open ticket; staff: any */
+  canEditTicketContent(ticket: ITicket): boolean {
+    if (this.isStaff()) {
+      return true;
+    }
+    const userId = this.currentUserSignal()?.id;
+    return (
+      userId !== undefined &&
+      ticket.authorId === userId &&
+      ticket.status === TicketStatus.OPEN
+    );
+  }
+
+  /** user: own open ticket; staff: any */
+  canDeleteTicket(ticket: ITicket): boolean {
+    if (this.isStaff()) {
+      return true;
+    }
+    const userId = this.currentUserSignal()?.id;
+    return (
+      userId !== undefined &&
+      ticket.authorId === userId &&
+      ticket.status === TicketStatus.OPEN
+    );
   }
 
   private handleAuthSuccess(response: IAuthResponse): void {

@@ -22,24 +22,26 @@
         }
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Приоритет</mat-label>
-        <mat-select formControlName="priority">
-          @for (priority of priorityOptions; track priority) {
-            <mat-option [value]="priority">{{ priority | priorityLabel }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      @if (isStaff()) {
+        <mat-form-field appearance="outline">
+          <mat-label>Приоритет</mat-label>
+          <mat-select formControlName="priority">
+            @for (priority of priorityOptions; track priority) {
+              <mat-option [value]="priority">{{ priority | priorityLabel }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Исполнитель</mat-label>
-        <mat-select formControlName="assigneeId">
-          <mat-option [value]="null">Не назначен</mat-option>
-          @for (user of users(); track user.id) {
-            <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Исполнитель</mat-label>
+          <mat-select formControlName="assigneeId">
+            <mat-option [value]="null">Не назначен</mat-option>
+            @for (user of users(); track user.id) {
+              <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
 
       @if (error()) {
         <div class="error-message">{{ error() }}</div>

@@ -29,15 +29,17 @@
     </mat-select>
   </mat-form-field>
 
-  <mat-form-field appearance="outline">
-    <mat-label>Исполнитель</mat-label>
-    <mat-select formControlName="assigneeId">
-      <mat-option value="">Все</mat-option>
-      @for (user of users(); track user.id) {
-        <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
+  @if (isStaff()) {
+    <mat-form-field appearance="outline">
+      <mat-label>Исполнитель</mat-label>
+      <mat-select formControlName="assigneeId">
+        <mat-option value="">Все</mat-option>
+        @for (user of users(); track user.id) {
+          <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
 
   <mat-form-field appearance="outline">
     <mat-label>Сортировка</mat-label>

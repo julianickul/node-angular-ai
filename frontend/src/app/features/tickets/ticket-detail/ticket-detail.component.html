@@ -4,9 +4,11 @@
   @if (ticket(); as t) {
     <div class="detail-header">
       <a mat-button routerLink="/tickets">← Назад</a>
-      <button mat-raised-button color="warn" (click)="deleteTicket()" [disabled]="deleting()">
-        Удалить
-      </button>
+      @if (canDelete()) {
+        <button mat-raised-button color="warn" (click)="deleteTicket()" [disabled]="deleting()">
+          Удалить
+        </button>
+      }
     </div>
 
     <mat-card class="detail-card">
@@ -32,49 +34,88 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="edit-card">
-      <mat-card-header>
-        <mat-card-title>Редактирование</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <form [formGroup]="editForm" class="edit-form" (ngSubmit)="save()">
-          <mat-form-field appearance="outline">
-            <mat-label>Статус</mat-label>
-            <mat-select formControlName="status">
-              @for (status of statusOptions; track status) {
-                <mat-option [value]="status">{{ status | statusLabel }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+    @if (showEditPanel()) {
+      <mat-card class="edit-card">
+        <mat-card-header>
+          <mat-card-title>Редактирование</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (isStaff()) {
+            <form [formGroup]="staffForm" class="edit-form" (ngSubmit)="saveStaff()">
+              <mat-form-field appearance="outline">
+                <mat-label>Статус</mat-label>
+                <mat-select formControlName="status">
+                  @for (status of statusOptions; track status) {
+                    <mat-option [value]="status">{{ status | statusLabel }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Приоритет</mat-label>
-            <mat-select formControlName="priority">
-              @for (priority of priorityOptions; track priority) {
-                <mat-option [value]="priority">{{ priority | priorityLabel }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Приоритет</mat-label>
+                <mat-select formControlName="priority">
+                  @for (priority of priorityOptions; track priority) {
+                    <mat-option [value]="priority">{{ priority | priorityLabel }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Исполнитель</mat-label>
-            <mat-select formControlName="assigneeId">
-              <mat-option [value]="null">Не назначен</mat-option>
-              @for (user of users(); track user.id) {
-                <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Исполнитель</mat-label>
+                <mat-select formControlName="assigneeId">
+                  <mat-option [value]="null">Не назначен</mat-option>
+                  @for (user of users(); track user.id) {
+                    <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
 
-          <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
-            @if (saving()) {
-              <mat-spinner diameter="20" />
-            } @else {
-              Сохранить
-            }
-          </button>
-        </form>
-      </mat-card-content>
-    </mat-card>
+              <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
+                @if (saving()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  Сохранить
+                }
+              </button>
+            </form>
+          } @else if (canEditContent()) {
+            <form [formGroup]="contentForm" class="content-edit-form" (ngSubmit)="saveContent()">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Заголовок</mat-label>
+                <input matInput formControlName="title" />
+                @if (contentForm.controls.title.hasError('minlength')) {
+                  <mat-error>Минимум 3 символа</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Описание</mat-label>
+                <textarea matInput formControlName="description" rows="6"></textarea>
+                @if (contentForm.controls.description.hasError('minlength')) {
+                  <mat-error>Минимум 10 символов</mat-error>
+                }
+              </mat-form-field>
+
+              <button
+                mat-raised-button
+                color="primary"
+                type="submit"
+                [disabled]="contentForm.invalid || saving()"
+              >
+                @if (saving()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  Сохранить
+                }
+              </button>
+            </form>
+          }
+
+          @if (error()) {
+            <div class="error-message">{{ error() }}</div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
   }
 }

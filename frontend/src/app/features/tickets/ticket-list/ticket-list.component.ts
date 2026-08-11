@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   OnInit,
@@ -21,6 +22,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TicketService } from '@core/services/ticket.service';
 import { UsersService } from '@core/services/users.service';
+import { AuthService } from '@core/services/auth/auth.service';
 import {
   ITicket,
   ITicketQuery,
@@ -56,6 +58,7 @@ export class TicketListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly ticketService = inject(TicketService);
   private readonly usersService = inject(UsersService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -74,6 +77,7 @@ export class TicketListComponent implements OnInit {
   ];
   readonly priorityOptions = PRIORITY_OPTIONS;
   readonly statusOptions = STATUS_OPTIONS;
+  readonly isStaff = this.authService.isStaff;
 
   tickets = signal<ITicket[]>([]);
   total = signal(0);
@@ -96,6 +100,13 @@ export class TicketListComponent implements OnInit {
   constructor() {
     this.destroyRef.onDestroy(() => this.observer?.disconnect());
 
+    effect(() => {
+      if (!this.isStaff() || this.users().length > 0) {
+        return;
+      }
+      this.usersService.getUsers().subscribe((users) => this.users.set(users));
+    });
+
     afterRenderEffect(() => {
       const el = this.loadMoreSentinel()?.nativeElement;
       this.observer?.disconnect();
@@ -116,8 +127,6 @@ export class TicketListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.usersService.getUsers().subscribe((users) => this.users.set(users));
-
     this.route.queryParams.subscribe((params) => {
       this.filtersForm.patchValue(
         {
@@ -167,7 +176,7 @@ export class TicketListComponent implements OnInit {
         search: form.search || null,
         status: form.status || null,
         priority: form.priority || null,
-        assigneeId: form.assigneeId || null,
+        assigneeId: this.isStaff() ? form.assigneeId || null : null,
         sortBy: form.sortBy || null,
         sortOrder: form.sortOrder || null,
       },
@@ -192,7 +201,10 @@ export class TicketListComponent implements OnInit {
       search: form.search || undefined,
       status: form.status || undefined,
       priority: form.priority || undefined,
-      assigneeId: form.assigneeId ? Number(form.assigneeId) : undefined,
+      assigneeId:
+        this.isStaff() && form.assigneeId
+          ? Number(form.assigneeId)
+          : undefined,
     };
 
     this.ticketService.getTickets(query).subscribe({
