@@ -2,19 +2,59 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.scope-filter {
+  margin-bottom: 1rem;
 }
 
 .filters {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0.5rem 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.results-count {
+  margin: 0 0 1rem;
+  color: rgba(0, 0, 0, 0.54);
+  font-size: 0.875rem;
 }
 
 .ticket-table {
   width: 100%;
   background: white;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+
+  &[data-status='open'] {
+    color: #1565c0;
+    background: rgba(21, 101, 192, 0.12);
+  }
+
+  &[data-status='in_progress'] {
+    color: #c62828;
+    background: rgba(198, 40, 40, 0.12);
+  }
+
+  &[data-status='resolved'] {
+    color: #2e7d32;
+    background: rgba(46, 125, 50, 0.12);
+  }
+
+  &[data-status='closed'] {
+    color: #212121;
+    background: rgba(33, 33, 33, 0.1);
+  }
 }
 
 .clickable-row {
@@ -38,11 +78,4 @@
 
 .load-more-sentinel {
   height: 1px;
-}
-
-.end-of-list {
-  text-align: center;
-  color: rgba(0, 0, 0, 0.54);
-  padding: 1rem 0 2rem;
-  margin: 0;
 }

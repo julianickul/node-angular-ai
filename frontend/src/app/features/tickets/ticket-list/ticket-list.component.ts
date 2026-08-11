@@ -19,6 +19,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TicketService } from '@core/services/ticket.service';
 import { UsersService } from '@core/services/users.service';
@@ -35,6 +36,8 @@ import { PRIORITY_OPTIONS, STATUS_OPTIONS } from '@shared/constants/ticket.const
 
 const PAGE_SIZE = 10;
 
+type TicketScope = 'all' | 'mine';
+
 @Component({
   selector: 'app-ticket-list',
   standalone: true,
@@ -47,6 +50,7 @@ const PAGE_SIZE = 10;
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatProgressSpinnerModule,
     PriorityLabelPipe,
     StatusLabelPipe,
@@ -65,6 +69,7 @@ export class TicketListComponent implements OnInit {
 
   private readonly loadMoreSentinel = viewChild<ElementRef<HTMLElement>>('loadMoreSentinel');
   private observer: IntersectionObserver | null = null;
+  private pendingMineReload = false;
 
   readonly displayedColumns = [
     'id',
@@ -85,8 +90,12 @@ export class TicketListComponent implements OnInit {
   loading = signal(false);
   loadingMore = signal(false);
   users = signal<IUserResponse[]>([]);
+  scope = signal<TicketScope>('all');
 
   readonly hasMore = computed(() => this.tickets().length < this.total());
+  readonly showAssigneeFilter = computed(
+    () => this.isStaff() && this.scope() === 'all',
+  );
 
   filtersForm = this.fb.group({
     search: [''],
@@ -105,6 +114,15 @@ export class TicketListComponent implements OnInit {
         return;
       }
       this.usersService.getUsers().subscribe((users) => this.users.set(users));
+    });
+
+    effect(() => {
+      const userId = this.authService.currentUser()?.id;
+      if (!this.pendingMineReload || userId === undefined) {
+        return;
+      }
+      this.pendingMineReload = false;
+      this.loadTickets(true);
     });
 
     afterRenderEffect(() => {
@@ -128,12 +146,20 @@ export class TicketListComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
+      const scope: TicketScope = params['mine'] === '1' ? 'mine' : 'all';
+      this.scope.set(scope);
+
       this.filtersForm.patchValue(
         {
           search: params['search'] ?? '',
           status: params['status'] ?? '',
           priority: params['priority'] ?? '',
-          assigneeId: params['assigneeId'] ? Number(params['assigneeId']) : '',
+          assigneeId:
+            scope === 'mine'
+              ? ''
+              : params['assigneeId']
+                ? Number(params['assigneeId'])
+                : '',
           sortBy: params['sortBy'] ?? 'createdAt',
           sortOrder: params['sortOrder'] ?? 'DESC',
         },
@@ -145,6 +171,18 @@ export class TicketListComponent implements OnInit {
     this.filtersForm.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe(() => this.applyFilters());
+  }
+
+  onScopeChange(scope: TicketScope | null): void {
+    if (!scope || scope === this.scope()) {
+      return;
+    }
+
+    this.scope.set(scope);
+    if (scope === 'mine') {
+      this.filtersForm.patchValue({ assigneeId: '' }, { emitEvent: false });
+    }
+    this.updateQueryParams();
   }
 
   applyFilters(): void {
@@ -168,20 +206,36 @@ export class TicketListComponent implements OnInit {
 
   private updateQueryParams(): void {
     const form = this.filtersForm.value;
+    const isMine = this.scope() === 'mine';
+
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
         page: null,
         limit: null,
+        mine: isMine ? '1' : null,
         search: form.search || null,
         status: form.status || null,
         priority: form.priority || null,
-        assigneeId: this.isStaff() ? form.assigneeId || null : null,
+        assigneeId:
+          !isMine && this.isStaff() ? form.assigneeId || null : null,
         sortBy: form.sortBy || null,
         sortOrder: form.sortOrder || null,
       },
       queryParamsHandling: 'merge',
     });
+  }
+
+  private resolveAssigneeId(formAssigneeId: number | '' | null | undefined): number | undefined {
+    if (this.scope() === 'mine') {
+      return this.authService.currentUser()?.id;
+    }
+
+    if (this.isStaff() && formAssigneeId) {
+      return Number(formAssigneeId);
+    }
+
+    return undefined;
   }
 
   private loadTickets(reset: boolean): void {
@@ -193,6 +247,15 @@ export class TicketListComponent implements OnInit {
     }
 
     const form = this.filtersForm.value;
+    const assigneeId = this.resolveAssigneeId(form.assigneeId);
+
+    if (this.scope() === 'mine' && assigneeId === undefined) {
+      this.pendingMineReload = true;
+      this.loading.set(false);
+      this.loadingMore.set(false);
+      return;
+    }
+
     const query: ITicketQuery = {
       page: this.page(),
       limit: PAGE_SIZE,
@@ -201,10 +264,7 @@ export class TicketListComponent implements OnInit {
       search: form.search || undefined,
       status: form.status || undefined,
       priority: form.priority || undefined,
-      assigneeId:
-        this.isStaff() && form.assigneeId
-          ? Number(form.assigneeId)
-          : undefined,
+      assigneeId,
     };
 
     this.ticketService.getTickets(query).subscribe({
