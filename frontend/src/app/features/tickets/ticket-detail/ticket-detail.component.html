@@ -1,0 +1,80 @@
+@if (loading()) {
+  <div class="loading"><mat-spinner /></div>
+} @else {
+  @if (ticket(); as t) {
+    <div class="detail-header">
+      <a mat-button routerLink="/tickets">← Назад</a>
+      <button mat-raised-button color="warn" (click)="deleteTicket()" [disabled]="deleting()">
+        Удалить
+      </button>
+    </div>
+
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>#{{ t.id }} — {{ t.title }}</mat-card-title>
+        <mat-card-subtitle>
+          Создана {{ t.createdAt | date: 'dd.MM.yyyy HH:mm' }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="description">{{ t.description }}</p>
+
+        <dl class="meta">
+          <dt>Автор</dt>
+          <dd>{{ userName(t.author) }}</dd>
+          <dt>Исполнитель</dt>
+          <dd>{{ userName(t.assignee) }}</dd>
+          <dt>Приоритет</dt>
+          <dd>{{ t.priority | priorityLabel }}</dd>
+          <dt>Статус</dt>
+          <dd>{{ t.status | statusLabel }}</dd>
+        </dl>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="edit-card">
+      <mat-card-header>
+        <mat-card-title>Редактирование</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="editForm" class="edit-form" (ngSubmit)="save()">
+          <mat-form-field appearance="outline">
+            <mat-label>Статус</mat-label>
+            <mat-select formControlName="status">
+              @for (status of statusOptions; track status) {
+                <mat-option [value]="status">{{ status | statusLabel }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Приоритет</mat-label>
+            <mat-select formControlName="priority">
+              @for (priority of priorityOptions; track priority) {
+                <mat-option [value]="priority">{{ priority | priorityLabel }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Исполнитель</mat-label>
+            <mat-select formControlName="assigneeId">
+              <mat-option [value]="null">Не назначен</mat-option>
+              @for (user of users(); track user.id) {
+                <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
+            @if (saving()) {
+              <mat-spinner diameter="20" />
+            } @else {
+              Сохранить
+            }
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+}

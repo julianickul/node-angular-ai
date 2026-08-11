@@ -1,0 +1,11 @@
+<mat-toolbar color="primary">
+  <a routerLink="/tickets" class="brand">Helpdesk</a>
+  <span class="spacer"></span>
+  @if (authService.currentUser(); as user) {
+    <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+    <button mat-button (click)="authService.logout()">Выйти</button>
+  }
+</mat-toolbar>
+<main class="content">
+  <router-outlet />
+</main>

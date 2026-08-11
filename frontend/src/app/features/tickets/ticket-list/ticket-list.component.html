@@ -1,0 +1,116 @@
+<div class="ticket-list-header">
+  <h1>Заявки</h1>
+  <a mat-raised-button color="primary" routerLink="/tickets/new">Создать заявку</a>
+</div>
+
+<form [formGroup]="filtersForm" class="filters">
+  <mat-form-field appearance="outline">
+    <mat-label>Поиск</mat-label>
+    <input matInput formControlName="search" placeholder="По заголовку" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Статус</mat-label>
+    <mat-select formControlName="status">
+      <mat-option value="">Все</mat-option>
+      @for (status of statusOptions; track status) {
+        <mat-option [value]="status">{{ status | statusLabel }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Приоритет</mat-label>
+    <mat-select formControlName="priority">
+      <mat-option value="">Все</mat-option>
+      @for (priority of priorityOptions; track priority) {
+        <mat-option [value]="priority">{{ priority | priorityLabel }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Исполнитель</mat-label>
+    <mat-select formControlName="assigneeId">
+      <mat-option value="">Все</mat-option>
+      @for (user of users(); track user.id) {
+        <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Сортировка</mat-label>
+    <mat-select formControlName="sortBy">
+      <mat-option value="createdAt">Дата создания</mat-option>
+      <mat-option value="priority">Приоритет</mat-option>
+      <mat-option value="status">Статус</mat-option>
+      <mat-option value="title">Заголовок</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Направление</mat-label>
+    <mat-select formControlName="sortOrder">
+      <mat-option value="DESC">По убыванию</mat-option>
+      <mat-option value="ASC">По возрастанию</mat-option>
+    </mat-select>
+  </mat-form-field>
+</form>
+
+@if (loading()) {
+  <div class="loading"><mat-spinner /></div>
+} @else {
+  <table mat-table [dataSource]="tickets()" class="ticket-table">
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>#</th>
+      <td mat-cell *matCellDef="let row">{{ row.id }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="title">
+      <th mat-header-cell *matHeaderCellDef>Тема</th>
+      <td mat-cell *matCellDef="let row">{{ row.title }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="priority">
+      <th mat-header-cell *matHeaderCellDef>Приоритет</th>
+      <td mat-cell *matCellDef="let row">{{ row.priority | priorityLabel }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Статус</th>
+      <td mat-cell *matCellDef="let row">{{ row.status | statusLabel }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="author">
+      <th mat-header-cell *matHeaderCellDef>Автор</th>
+      <td mat-cell *matCellDef="let row">{{ userName(row.author) }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="assignee">
+      <th mat-header-cell *matHeaderCellDef>Исполнитель</th>
+      <td mat-cell *matCellDef="let row">{{ userName(row.assignee) }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="createdAt">
+      <th mat-header-cell *matHeaderCellDef>Создана</th>
+      <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      class="clickable-row"
+      (click)="openTicket(row.id)"
+    ></tr>
+  </table>
+
+  <mat-paginator
+    [length]="total()"
+    [pageIndex]="page() - 1"
+    [pageSize]="limit()"
+    [pageSizeOptions]="[10, 25, 50]"
+    (page)="onPageChange($event)"
+  />
+}

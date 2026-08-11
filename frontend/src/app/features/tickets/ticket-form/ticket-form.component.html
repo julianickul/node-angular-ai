@@ -1,0 +1,57 @@
+<div class="form-header">
+  <a mat-button routerLink="/tickets">← Назад</a>
+  <h1>Новая заявка</h1>
+</div>
+
+<mat-card>
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="ticket-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Заголовок</mat-label>
+        <input matInput formControlName="title" />
+        @if (form.controls.title.hasError('minlength')) {
+          <mat-error>Минимум 3 символа</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Описание</mat-label>
+        <textarea matInput formControlName="description" rows="6"></textarea>
+        @if (form.controls.description.hasError('minlength')) {
+          <mat-error>Минимум 10 символов</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Приоритет</mat-label>
+        <mat-select formControlName="priority">
+          @for (priority of priorityOptions; track priority) {
+            <mat-option [value]="priority">{{ priority | priorityLabel }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Исполнитель</mat-label>
+        <mat-select formControlName="assigneeId">
+          <mat-option [value]="null">Не назначен</mat-option>
+          @for (user of users(); track user.id) {
+            <mat-option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (error()) {
+        <div class="error-message">{{ error() }}</div>
+      }
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || submitting()">
+        @if (submitting()) {
+          <mat-spinner diameter="20" />
+        } @else {
+          Создать
+        }
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>

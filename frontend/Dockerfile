@@ -61,16 +61,13 @@ COPY --from=shared-builder /app/shared-types/tsconfig*.json ./shared-types/
 # Копируем исходники фронтенда
 COPY frontend/ ./frontend/
 
-# Создаем proxy для Docker
-RUN echo '{"/api": {"target": "http://backend:3000","secure": false,"changeOrigin": true,"logLevel": "debug"}}' > ./frontend/proxy.conf.json
-
 WORKDIR /app/frontend
 # Примечание: Убедитесь, что этот скрипт есть в frontend/package.json
 #RUN npm run build
 
 EXPOSE 4200
 
-CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--proxy-config", "proxy.conf.json", "--poll", "1000"]
+CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--proxy-config", "proxy.conf.docker.json", "--poll", "1000"]
 
 
 # ============================================

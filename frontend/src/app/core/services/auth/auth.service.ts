@@ -66,6 +66,17 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
+  /** Applies tokens + user after login or successful refresh */
+  applySession(response: IAuthResponse): void {
+    this.handleAuthSuccess(response);
+  }
+
+  /** Clears session without calling /auth/logout (used when refresh fails) */
+  expireSession(): void {
+    this.clearSession();
+    this.router.navigate(['/login']);
+  }
+
   getUserRole() {
     return this.currentUserSignal()?.role ?? null;
   }
