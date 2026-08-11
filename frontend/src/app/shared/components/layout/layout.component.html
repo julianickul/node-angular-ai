@@ -1,5 +1,25 @@
 <mat-toolbar color="primary">
   <a routerLink="/tickets" class="brand">Helpdesk</a>
+  <nav class="nav">
+    <a
+      mat-button
+      routerLink="/tickets"
+      routerLinkActive="active-link"
+      [routerLinkActiveOptions]="{ exact: false }"
+    >
+      Заявки
+    </a>
+    @if (authService.isAdmin()) {
+      <a
+        mat-button
+        routerLink="/users"
+        routerLinkActive="active-link"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        Пользователи
+      </a>
+    }
+  </nav>
   <span class="spacer"></span>
   @if (authService.currentUser(); as user) {
     <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>

@@ -1,0 +1,45 @@
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.users-table {
+  width: 100%;
+  background: white;
+}
+
+.role-field {
+  width: 180px;
+  margin: 0;
+}
+
+.inline-spinner {
+  display: inline-block;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.you-badge {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.error-message {
+  color: #c62828;
+  margin-bottom: 1rem;
+}
+
+.empty {
+  text-align: center;
+  color: rgba(0, 0, 0, 0.54);
+  padding: 2rem 0;
+}
