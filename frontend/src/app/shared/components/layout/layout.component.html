@@ -20,7 +20,6 @@
       </a>
     }
   </nav>
-  <span class="spacer"></span>
   @if (authService.currentUser(); as user) {
     <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
     <button mat-button (click)="authService.logout()">Выйти</button>
